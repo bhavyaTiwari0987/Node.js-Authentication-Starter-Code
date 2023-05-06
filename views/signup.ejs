@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Sign Up Page</title>
+    <link rel="stylesheet" href="/css/stylesignup.css">
+</head>
+<body>
+    <a href="/home">Go to Home </a>
+    <% if (messages && messages.success) { %>
+          <p><%= messages.success %></p>
+      <% }else if(messages && messages.error){ %>
+        <p><%= messages.error %></p>
+      <% }%>
+      
+  	<div class="container">
+		<div class="form">
+			<h1>Sign Up</h1>
+                
+			<form action="/api/v1/users/signup" method="POST">
+                <table>
+                    <tr>
+                        <td>
+                            <label for="name">Full Name</label>
+                        </td>
+                        <td>
+                            <input type="text" id="name" name="name" required></br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="email">Username</label>
+                        </td>
+                        <td>
+                            <input type="text" id="email" name="email" required></br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="password">Password</label>
+                        </td>
+                        <td>
+                            <input type="password" id="password" name="password" required></br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="passwordConfirm">Confirm Password</label>
+                        </td>
+                        <td>
+                            <input type="password" id="passwordConfirm" name="passwordConfirm" required>
+                        </td>
+                    </tr>
+                </table>      
+				
+				<input type="submit" value="Sign Up">
+			</form>
+		</div>
+        <h3>Already have an account?</h3>
+        <span><a href="/login">Login here!</a></span>
+	</div>
+</body>
+</html>
