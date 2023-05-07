@@ -6,28 +6,28 @@ const userRouter = require("./routes/userRoutes");
 const viewRouter = require('./routes/viewRoutes');
 const session = require('express-session');
 const flash = require('connect-flash');
-// const expressLayouts = require('express-ejs-layouts');
-
+const cookieParser = require('cookie-parser');
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 
 const app = express();
 
+// SETTING VIEW ENGINE
 app.set('view engine' , 'ejs');
 app.set('views' , path.join(__dirname, 'views'));
 
 
-// Layout for EJS tempalte
-// app.use(expressLayouts);
+// FOR CHECKING REQ.COOKIES
+app.use(cookieParser())
 
-// Serving static files
+// SERVING STATIC FILES
 app.use(express.static(`${__dirname}/public`));
 
-// Middleware
+// MIDDLEWARES
 app.use(express.urlencoded());
 app.use(express.json());
 
-// Express Session and flash
+// EXPRESS SESSION AND FLASH
 app.use(session({
   secret: 'secret',
   resave: false,
@@ -35,12 +35,12 @@ app.use(session({
 }));
 app.use(flash());
 
-// Mounting the Routers
+// MOUNTING THE ROUTERS
 app.use('/' , viewRouter);
 app.use("/api/v1/users", userRouter);
 
 
-// Error Handling
+// ERROR HANDLING FOR API
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });

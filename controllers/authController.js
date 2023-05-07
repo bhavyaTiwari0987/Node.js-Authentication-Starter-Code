@@ -1,17 +1,16 @@
 const User = require("./../models/userModel");
-// const { promisify } = require('util');
-// const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const catchAsync = require("./../utils/catchAsync");
-const AppError = require("./../utils/appError");
+const { promisify } = require('util');
 
-
+// CREATE TOKEN
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
+// CREATE AND SEND TOKEN AND SET COOKIE 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
@@ -31,27 +30,27 @@ const createSendToken = (user, statusCode, res) => {
 
 };
 
-//Signup
+// SIGN UP
 exports.signup = catchAsync(async (req, res, next) => {
-  console.log(req.body);
- 
+  if(req.body.password !== req.body.passwordConfirm){
+    req.flash('error' , 'Please check your password!');
+    res.redirect('/signup');
+  }
+  
   const newUser = await User.create(req.body);
-  console.log(newUser);
-  // res.send('signed up!');
   const token = createSendToken(newUser, 201, res);
   if(newUser && token){
     req.flash('success' , 'Yupp!! Your account has been created... :)');
-    res.redirect('/signup');
+    res.redirect('/login');
   }else {
     req.flash('error' , 'Something went wrong.. Try Again!');
     res.redirect('/signup');
   }
 });
 
-//Login
+// LOGIN
 exports.login = catchAsync (async(req, res, next) => {
-  console.log(req.body);
-   const {email , password} = req.body;
+    const {email , password} = req.body;
 
   // 1 Check if email and password exist
   if(!email || !password){
@@ -81,69 +80,67 @@ exports.login = catchAsync (async(req, res, next) => {
  
 });
 
-// exports.protect = catchAsync(async (req, res, next) => {
-//   // 1) Getting token and check of it's there
-//  let token;
-//  if (
-//    req.headers.authorization &&
-//    req.headers.authorization.startsWith('Bearer')
-//  ) {
-//    token = req.headers.authorization.split(' ')[1];
-//  } else if (req.cookies.jwt) {
-//    token = req.cookies.jwt;
-//  }
 
-//  if (!token) {
-//    return next(
-//      new AppError('You are not logged in! Please log in to get access.', 401)
-//    );
-//  }
 
-//  // 2) Verification token
-//  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+// RESET PASSWORD
+exports.resetPassword = catchAsync(async (req, res, next) => {
+if(req.body.password !== req.body.passwordConfirm){
+  req.flash('success' , ' Please check your password!');
+  res.redirect('/resetPassword');
+}
+ // 2) Verification token
+ const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-//  // 3) Check if user still exists
-//  const currentUser = await User.findById(decoded.id);
-//  if (!currentUser) {
-//    return next(
-//      new AppError(
-//        'The user belonging to this token does no longer exist.',
-//        401
-//      )
-//    );
-//  }
+//  3) Check if user still exists
+ const currentUser = await User.findById(decoded.id);
+ if (!currentUser) {
+  req.flash('error' , 'The user belonging to this token does no longer exist.');
+  res.redirect('/resetPassword');
+ }
 
- // 4) Check if user changed password after the token was issued
-//  if (currentUser.changedPasswordAfter(decoded.iat)) {
-//    return next(
-//      new AppError('User recently changed password! Please log in again.', 401)
-//    );
-//  }
+ currentUser.password = req.body.password;
+ currentUser.passwordConfirm = req.body.passwordConfirm;
+
+ await currentUser.save();
+ req.flash('success' , 'Password has been reset successfully!');
+ res.redirect('/login');
+});
+
+// LOGOUT
+exports.logout = (req,res, next) => {
+  res.cookie('jwt', 'undefined');
+  res.redirect('/home');
+  
+}
+
+// PROTECT
+exports.protect = catchAsync(async (req, res, next) => {
+   if(req.cookies.jwt === 'undefined'){
+    req.flash('error' , 'You are not logged in! Please log in to get access.');
+    res.redirect('/login');
+  }
+  // 1) Getting token and check of it's there
+ if (req.cookies.jwt) {
+   token = req.cookies.jwt;
+ }
+
+ if (!token) {
+  req.flash('error' , 'You are not logged in! Please log in to get access.');
+  res.redirect('/login');
+ }
+
+ // 2) Verification token
+ const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+//  3) Check if user still exists
+ const currentUser = await User.findById(decoded.id);
+ if (!currentUser) {
+  req.flash('error' , 'The user belonging to this token does no longer exist.');
+  res.redirect('/login');
+ }
 
  // GRANT ACCESS TO PROTECTED ROUTE
-//  req.user = currentUser;
-//  next();
-// });
+ req.user = currentUser;
 
-// // GRANT ACCESS TO PROTECTED ROUTE
-// req.user = currentUser;
-// next();
-
-// })
-
-
-// Forgot Password
-exports.forgotPassword = (req, res, next) => {
-  res.status(200).json({
-    status: "success",
-    data: "forgot",
-  });
-};
-
-//Reset Password
-exports.resetPassword = (req, res, next) => {
-  res.status(200).json({
-    status: "success",
-    data: "Reset",
-  });
-};
+ next();
+});

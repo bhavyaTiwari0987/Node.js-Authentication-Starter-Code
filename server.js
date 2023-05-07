@@ -10,7 +10,7 @@ process.on("uncaughtException", (err) => {
 dotenv.config({ path: "./config.env" });
 const app = require('./index');
 
-// Setting database MongoDB
+// SETTING MONGO DB (DATABASE)
 const DB = process.env.DATABASE.replace(
   "<PASSWORD>",
   process.env.DATABASE_PASSWORD
@@ -22,7 +22,7 @@ mongoose.connect(DB , {
   useFindAndModify: false
 }).then(() => console.log("DB Connection successful"));
 
-
+// RUNNING SERVER
 const port = 3001;
 
 const server = app.listen(port, () => {

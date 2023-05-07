@@ -8,10 +8,11 @@
 <body>
     <a href="/home">Go to Home </a>
     <% if (messages && messages.success) { %>
-          <p><%= messages.success %></p>
-      <% }else if(messages && messages.error){ %>
-        <p><%= messages.error %></p>
-      <% }%>
+        <p><%= messages.success %></p>
+     <% } %>
+     <% if(messages && messages.error){ %>
+           <p><%= messages.error %></p>
+     <% }%>
       
   	<div class="container">
 		<div class="form">

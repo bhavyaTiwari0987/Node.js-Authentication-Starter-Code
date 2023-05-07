@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 
 
-// Create Schema
+// SCHEMA CREATION
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -84,7 +84,6 @@ userSchema.methods.correctPassword = async function (
 ){
   return await bcrypt.compare(candidatePassword, userPassword);
 }
-
 
 
 // Create Model
